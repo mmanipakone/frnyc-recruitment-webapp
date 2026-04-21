@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRNYC Recruitment Hub — Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { head: ['Montserrat','sans-serif'], body: ['Inter','sans-serif'] },
+          colors: {
+            navy: { DEFAULT:'#0F3460', light:'#1B4D7E', dark:'#081F3F' },
+            crimson: { DEFAULT:'#B5162B', light:'#D91A34' },
+            gold: { DEFAULT:'#F5C518' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family:'Inter',sans-serif; background:#F7F9FC; }
+    .font-head { font-family:'Montserrat',sans-serif; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pop { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+    .fade-in { animation:fadeIn 0.25s ease-out; }
+    .pop { animation:pop 0.3s ease-out; }
+    .nav-link { display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;font-size:14px;font-family:'Montserrat',sans-serif;font-weight:600;color:rgba(255,255,255,0.6);transition:all 0.15s;cursor:pointer; }
+    .nav-link:hover { background:rgba(255,255,255,0.08);color:#fff; }
+    .nav-link.active { background:rgba(255,255,255,0.15);color:#fff; }
+    .card { background:#fff;border:1px solid #DDE3EE;border-radius:12px;box-shadow:0 2px 8px rgba(15,52,96,0.08); }
+    .card:hover { box-shadow:0 6px 24px rgba(15,52,96,0.14); }
+    .btn-primary { display:inline-flex;align-items:center;gap:8px;background:#B5162B;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;padding:12px 28px;border-radius:999px;border:none;cursor:pointer;transition:all 0.15s;font-size:14px; }
+    .btn-primary:hover { background:#D91A34;transform:translateY(-1px);box-shadow:0 4px 12px rgba(181,22,43,0.3); }
+    .btn-navy { background:#0F3460;color:#fff; }
+    .btn-navy:hover { background:#1B4D7E; }
+    .pill { display:inline-flex;align-items:center;border-radius:999px;font-size:10px;font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px; }
+    .progress-bar { height:6px;background:#E5E7EB;border-radius:999px;overflow:hidden; }
+    .progress-fill { height:100%;border-radius:999px;transition:width 0.7s ease-out; }
+    .step-btn { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'Montserrat',sans-serif;font-weight:700;flex-shrink:0;transition:all 0.15s; }
+    .mission-step { border-radius:12px;border:2px solid;padding:24px;animation:fadeIn 0.25s ease-out; }
+    .celebration { position:fixed;inset:0;background:#081F3F;display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.2s ease-out; }
+    .hidden { display:none; }
+    ::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-thumb{background:#DDE3EE;border-radius:3px}
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════
+
+const PHASES = [
+  { id:'awareness',   letter:'A', label:'Awareness',   color:'#0F3460', bg:'#EEF4FB' },
+  { id:'exposure',    letter:'E', label:'Exposure',    color:'#1B4D7E', bg:'#F0F6FF' },
+  { id:'commitment',  letter:'C', label:'Commitment',  color:'#B5162B', bg:'#FEF2F4' },
+  { id:'experience',  letter:'E', label:'Experience',  color:'#2D6A4F', bg:'#F0FFF4' },
+  { id:'completion',  letter:'C', label:'Completion',  color:'#5A3E8A', bg:'#F5F0FF' },
+]
+
+const ROLES = [
+  { id:'principal',         title:'Principal / AP',          icon:'🏫', color:'#0F3460', bg:'#EEF4FB', desc:'Lead school-wide recruitment strategy, set goals, and remove barriers.' },
+  { id:'counselor',         title:'Counselor / Rec Lead',    icon:'🎯', color:'#B5162B', bg:'#FEF2F4', desc:'Own the student pipeline, manage outreach, and track enrollment funnel.' },
+  { id:'pathway-teacher',   title:'Pathway Teacher',         icon:'📚', color:'#1B4D7E', bg:'#F0F6FF', desc:'Deliver pathway content, mentor students, support retention.' },
+  { id:'family-engagement', title:'Family Engagement',       icon:'🤝', color:'#2D6A4F', bg:'#F0FFF4', desc:'Connect families to FRNYC and address barriers to participation.' },
+  { id:'team-view',         title:'Team View',               icon:'👥', color:'#5A3E8A', bg:'#F5F0FF', desc:'See the full picture of your school\'s FRNYC progress.' },
+]
+
+const STEP_CONFIG = {
+  'do-now':             { label:'Do Now',              color:'#B5162B', bg:'#FEF2F4', icon:'⚡' },
+  'objective':          { label:'Objective',           color:'#0F3460', bg:'#EEF4FB', icon:'🎯' },
+  'model':              { label:'See the Model',       color:'#1B4D7E', bg:'#F0F6FF', icon:'👁' },
+  'guided-practice':    { label:'Guided Practice',     color:'#D97706', bg:'#FFFBEB', icon:'🤝' },
+  'independent-practice':{ label:'Independent Practice',color:'#059669',bg:'#ECFDF5', icon:'💪' },
+  'share':              { label:'Share',               color:'#7C3AED', bg:'#F5F3FF', icon:'📢' },
+  'exit-ticket':        { label:'Exit Ticket',         color:'#374151', bg:'#F9FAFB', icon:'✅' },
+}
+
+const MISSIONS = [
+  {
+    id:'mission-roadmap',
+    title:'Build Your 4-Year FRNYC Roadmap',
+    why:'Students without a clear plan are 3× more likely to disengage by 10th grade.',
+    phase:'awareness', owner:['pathway-teacher','counselor'],
+    time:'45 min', due:'Before end of Sept',
+    output:'Completed 4-year roadmap for each enrolled student',
+    doneWhen:'Every enrolled student has a personalized FRNYC roadmap reviewed with at least one adult.',
+    badge:'Roadmap Ready',
+    steps:[
+      { type:'do-now',              title:'Name one student at risk of dropping the pathway',         content:'Think of a specific student you\'re worried about losing this year. Write their name down.',                                   action:'Write one student\'s name on a sticky note.',                               timeMin:2  },
+      { type:'objective',           title:'What you\'ll accomplish in this mission',                  content:'You will have a completed 4-year FRNYC roadmap template reviewed with enrolled students.',                                 action:'Read this once, then move on.',                                             timeMin:1  },
+      { type:'model',               title:'What a strong roadmap looks like',                         content:'Shows: courses by grade, SYEP/internship years (10–12), credential milestones, gateway moments.',                           action:'Look at the sample roadmap in Resources.',                                  timeMin:5  },
+      { type:'guided-practice',     title:'Fill in the roadmap for one student together',             content:'Use the template with a co-teacher or counselor. Talk through each year. Surface confusion before doing it with 30 students.', action:'Fill in Grades 9–12 for one sample student. ~10 min with a colleague.',    timeMin:10 },
+      { type:'independent-practice',title:'Complete roadmaps for your full roster',                   content:'Using your roster and the template, complete a roadmap for each enrolled student.',                                         action:'Complete templates for all enrolled students. Track in your roster sheet.',  timeMin:20 },
+      { type:'share',               title:'Review one roadmap with a student this week',              content:'The roadmap only works if the student understands it. Schedule 5 min with the student from step 1.',                       action:'Book a 5-min check-in with the student on your sticky note.',               timeMin:5  },
+      { type:'exit-ticket',         title:'Mark this mission complete',                               content:'Before checking this off: How many students have a completed roadmap? If under 80%, set a follow-up first.',               action:'Confirm: 80%+ of your roster has a completed roadmap. Then mark done.',     timeMin:2  },
+    ]
+  },
+  {
+    id:'mission-materials',
+    title:'Customize Student & Family Pathway Materials',
+    why:'Generic materials get ignored. School-specific materials drive enrollment and family trust.',
+    phase:'awareness', owner:['counselor','family-engagement','pathway-teacher'],
+    time:'60 min', due:'Before first info session',
+    output:'School-branded one-pager and family FAQ ready for distribution',
+    doneWhen:'Your school has a one-pager and family FAQ specific to your FRNYC pathway, reviewed by your principal.',
+    badge:'Messaging Ready',
+    steps:[
+      { type:'do-now',              title:'Find your current materials',                              content:'Pull out whatever student or family materials you\'re currently using to explain FRNYC.',                                    action:'Collect whatever exists. If none: open the one-pager template.',            timeMin:3  },
+      { type:'objective',           title:'What you\'ll build',                                       content:'You will create: (1) 1-page student overview and (2) family FAQ answering top 5 questions.',                               action:'Note: Generic = invisible. Specific = trusted.',                            timeMin:1  },
+      { type:'model',               title:'What strong recruitment materials look like',              content:'Answers 5 questions in 30 sec: What is this? Who is it for? What will my student do? What does it cost? Next step?',       action:'Open Resources → Examples → One-Pager Gallery. Look at 2 examples.',        timeMin:5  },
+      { type:'guided-practice',     title:'Draft your school\'s headline',                           content:'Draft 3 versions of your pathway headline. Example: "Earn a real industry credential before you graduate — free."',         action:'Write 3 headline options. Circle the one families care about most.',         timeMin:10 },
+      { type:'independent-practice',title:'Complete both documents',                                  content:'Using the template and your headline, complete the one-pager and FAQ with school-specific details.',                        action:'Complete both. Save as [SchoolName]-FRNYC-Materials-2026.',                 timeMin:30 },
+      { type:'share',               title:'Get a 10-second test from someone outside your team',     content:'Show to someone unfamiliar with FRNYC. Ask: "What is this about? Who is it for?"',                                          action:'Do the 10-second test with 1 person. Note what confused them.',             timeMin:5  },
+      { type:'exit-ticket',         title:'Ready for distribution?',                                  content:'Before you mark complete: Have you shared with your principal for sign-off?',                                               action:'Email materials to principal. Mark complete after approval.',               timeMin:2  },
+    ]
+  },
+  {
+    id:'mission-ambassadors',
+    title:'Launch Your Student Ambassador Program',
+    why:'Peer influence is the #1 driver of pathway enrollment. Trained ambassadors reach networks no staff can access.',
+    phase:'exposure', owner:['pathway-teacher','counselor'],
+    time:'90 min across 2 sessions', due:'By end of October',
+    output:'Trained ambassador cohort of 4–8 students with assigned roles',
+    doneWhen:'You have 4–8 trained ambassadors who have each completed their first peer outreach activity.',
+    badge:'Ambassador Ready',
+    dependsOn:['mission-materials'],
+    steps:[
+      { type:'do-now',              title:'Name 3 students who other students listen to',             content:'Not the "best" students — the most connected ones. Who do others follow, ask for advice, or model themselves after?',        action:'Write 3 student names with social influence in your cohort.',               timeMin:3  },
+      { type:'objective',           title:'What your ambassador program will do',                     content:'Ambassadors have 3 jobs: (1) Tell their story to 8th-graders. (2) Co-present at info sessions. (3) Create content.',         action:'Read the ambassador roles overview.',                                       timeMin:2  },
+      { type:'model',               title:'What trained ambassadors say and do',                      content:'A trained ambassador can answer: "What do you do? Best part? Hard at first? Would you recommend it?"',                       action:'Read the Story Script Template in Resources.',                              timeMin:5  },
+      { type:'guided-practice',     title:'Recruit and brief your first ambassador',                  content:'Have a 5-min conversation with one of your listed students. Explain the ask: 3 sessions, tell your story.',                  action:'Have the recruitment conversation. Log yes/no/maybe.',                      timeMin:10 },
+      { type:'independent-practice',title:'Run your ambassador training session',                     content:'Schedule a 45-min session. Cover: why FRNYC, how to tell their story, Q&A practice, role assignments.',                     action:'Schedule and run training. Assign at least one activity per ambassador.',   timeMin:45 },
+      { type:'share',               title:'Record one ambassador story (30 seconds)',                 content:'Ask one ambassador to record a 30-sec video: "Why I chose FRNYC and what I\'ve gotten from it."',                           action:'Film one 30-sec video. Save to school drive.',                              timeMin:10 },
+      { type:'exit-ticket',         title:'Ambassadors ready to deploy?',                             content:'Before marking complete: Do you have 4+ trained ambassadors? Have they each completed one outreach activity?',               action:'Confirm 4+ ambassadors trained. Name any who still need first activity.',   timeMin:3  },
+    ]
+  },
+  {
+    id:'mission-retention',
+    title:'Build Your Cohort Retention Structures',
+    why:'Without intentional retention structures, you\'ll rebuild your cohort every year. Strong systems reduce drop-off by 40%+.',
+    phase:'commitment', owner:['principal','counselor','pathway-teacher'],
+    time:'75 min', due:'By 30 days after school start',
+    output:'Written retention plan with check-in cadence, early warning, and support protocols',
+    doneWhen:'Your school has a documented retention plan, monthly check-in calendar, and early warning process with a named owner.',
+    badge:'Cohort Launch Ready',
+    dependsOn:['mission-roadmap'],
+    steps:[
+      { type:'do-now',              title:'Who left your pathway last year — and why?',               content:'Think back to students who started FRNYC but didn\'t finish. What happened? Name the real reasons.',                         action:'List the top 2–3 reasons students left your pathway last year.',            timeMin:5  },
+      { type:'objective',           title:'What a retention system does',                             content:'Catches students before they disengage. Has: (1) regular check-in pulse, (2) early warning trigger, (3) named adult for follow-up, (4) escalation options.',  action:'Write yes/no next to each of the 4 components.',                           timeMin:3  },
+      { type:'model',               title:'What a strong retention structure looks like',             content:'Strong schools run: monthly 10-min 1:1 check-ins, bi-weekly team meeting with "red list" review, early warning dashboard.',   action:'Check Resources → Retention → Early Warning Template.',                     timeMin:5  },
+      { type:'guided-practice',     title:'Map your current retention gaps',                          content:'For each gap: who could own it? What\'s the smallest action to close it?',                                                    action:'Fill in the Retention Gap Mapper. Identify top 2 gaps to close this month.',timeMin:15 },
+      { type:'independent-practice',title:'Write your school\'s retention plan',                     content:'Document: check-in calendar, early warning criteria/owner, support pathway, escalation process. One page.',                  action:'Complete the one-page plan. Share with your principal before submitting.',  timeMin:30 },
+      { type:'share',               title:'Present your plan to your team in 5 minutes',             content:'A plan only works if the whole team knows it. Walk through: when we check in, early warning signal, who to go to.',             action:'Add \'Retention Plan Review\' to your next team meeting agenda.',           timeMin:5  },
+      { type:'exit-ticket',         title:'Is your system actually running?',                         content:'Before marking complete: Is the first check-in on the calendar? Is the early warning owner named?',                           action:'Confirm all 3 conditions. Mark complete only when all are true.',           timeMin:2  },
+    ]
+  },
+  {
+    id:'mission-survey',
+    title:'Run the Student Interest Survey',
+    why:'Guessing what students want leads to under-enrollment. A quick survey reveals real interest and surfaces barriers.',
+    phase:'exposure', owner:['counselor','pathway-teacher'],
+    time:'30 min to set up, then deploy', due:'By end of October',
+    output:'Survey sent to all eligible students, results analyzed',
+    doneWhen:'Survey completed by 70%+ of eligible students, and you have a prioritized follow-up list.',
+    badge:'Funnel Built',
+    steps:[
+      { type:'do-now',              title:'How many students are potentially eligible?',              content:'Know your target before you send. How many students could enroll? Grade level? Eligibility requirements?',                    action:'Write: "I have ___ eligible students for FRNYC this year."',               timeMin:3  },
+      { type:'objective',           title:'What the survey will tell you',                            content:'Answers: (1) Who is interested? (2) Top concerns? (3) What do they already know? (4) Who are the influencers?',              action:'Confirm you\'ll act on the results — not just collect them.',               timeMin:2  },
+      { type:'model',               title:'What a good interest survey looks like',                   content:'Under 10 questions, under 5 minutes, asks about interest level, barriers, and follow-up preference.',                         action:'Review the template in Resources → Surveys.',                               timeMin:10 },
+      { type:'guided-practice',     title:'Customize and deploy the survey',                          content:'Add your school-specific pathway name. Share via Google Form, paper, or advisory period.',                                    action:'Deploy the survey. Set a 2-week response deadline.',                        timeMin:10 },
+      { type:'independent-practice',title:'Analyze results and build your follow-up list',           content:'Sort by interest: (1) High interest — schedule conversations. (2) Medium — invite to info session. (3) Low — note barriers.', action:'Complete the prioritized follow-up list. Export to your tracker.',           timeMin:15 },
+      { type:'share',               title:'Share top 3 findings with your team',                     content:'"We had ___ responses. Top concern was ___. Most interested group was ___. Here\'s our follow-up plan."',                       action:'Add survey debrief to next team meeting. 5 minutes.',                       timeMin:5  },
+      { type:'exit-ticket',         title:'Is your funnel built?',                                    content:'Before marking complete: Segmented follow-up list ready? High-interest group contacted?',                                     action:'Confirm 70%+ response rate and segmented list. Mark complete.',             timeMin:2  },
+    ]
+  },
+  {
+    id:'mission-family-session',
+    title:'Plan & Run a Family Information Session',
+    why:'Family buy-in is the #1 predictor of long-term enrollment. One well-run session converts skeptical families into active supporters.',
+    phase:'commitment', owner:['family-engagement','counselor','principal'],
+    time:'2 hrs prep + 1 hr session', due:'By end of November',
+    output:'Family information session hosted, with sign-in sheet and follow-up plan',
+    doneWhen:'Session hosted with 15+ family attendees, follow-up sent within 3 days.',
+    badge:'Family Funnel Active',
+    steps:[
+      { type:'do-now',              title:'When did a family last ask: "What is FRNYC?"',            content:'Think about the last confused family conversation. What question do families keep asking?',                                    action:'Write the 2 most common confused-family questions you\'ve heard.',          timeMin:3  },
+      { type:'objective',           title:'What the session will accomplish',                         content:'Families will: (1) explain FRNYC to another family member, (2) name one concrete benefit, (3) take one clear next action.',  action:'Write the 3 outcomes on your planning sheet.',                              timeMin:2  },
+      { type:'model',               title:'What a strong family info session looks like',             content:'45–60 min: 10 min welcome + student story, 15 min overview, 10 min Q&A, 10 min 1:1s, 5 min next steps.',                    action:'Check Resources → Family → Session Agenda Template.',                       timeMin:10 },
+      { type:'guided-practice',     title:'Build your session agenda and materials',                  content:'Fill in: school-specific details, ambassador slot, translated materials if needed, Q&A prep, next-step action.',              action:'Complete agenda. Confirm ambassador participation.',                         timeMin:45 },
+      { type:'independent-practice',title:'Run the session',                                          content:'Execute the agenda. Have sign-in sheet ready. Collect contact info. Note which questions surprised you.',                     action:'Host the session. Collect sign-ins. Record top 3 questions asked.',         timeMin:60 },
+      { type:'share',               title:'Send follow-up within 3 days',                            content:'Every family gets: thank you, one key resource, one clear next step. No-shows get a "we missed you."',                        action:'Send follow-up to 100% of families within 3 business days.',               timeMin:20 },
+      { type:'exit-ticket',         title:'Did it move the needle?',                                  content:'How many families attended? How many committed to a next step? Under 15? Plan a follow-up session.',                         action:'Log attendance and committed next-steps. Mark complete.',                   timeMin:5  },
+    ]
+  },
+]
+
+const BADGES = [
+  { id:'roadmap-ready',        name:'Roadmap Ready',         emoji:'🗺️', color:'#0F3460', missionId:'mission-roadmap'       },
+  { id:'messaging-ready',      name:'Messaging Ready',       emoji:'📣', color:'#B5162B', missionId:'mission-materials'      },
+  { id:'ambassador-ready',     name:'Ambassador Ready',      emoji:'⭐', color:'#1B4D7E', missionId:'mission-ambassadors'    },
+  { id:'funnel-built',         name:'Funnel Built',          emoji:'🏗️', color:'#2D6A4F', missionId:'mission-survey'         },
+  { id:'cohort-launch-ready',  name:'Cohort Launch Ready',   emoji:'🚀', color:'#5A3E8A', missionId:'mission-retention'      },
+  { id:'family-funnel-active', name:'Family Funnel Active',  emoji:'🤝', color:'#D4A510', missionId:'mission-family-session' },
+  { id:'recruitment-ready',    name:'Recruitment Ready',     emoji:'🏆', color:'#F5C518', missionId:null                     },
+]
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+
+const STORAGE_KEY = 'frnyc_progress_preview'
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch(e) {}
+  return {
+    onboarded: false,
+    role: 'counselor',
+    schoolName: '',
+    completedMissions: [],
+    missionStepProgress: {},
+    earnedBadges: [],
+    streak: 0,
+    lastActive: '',
+    phase: 'awareness',
+    focusMode: false,
+  }
+}
+
+function saveState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)) }
+
+let STATE = loadState()
+let CURRENT_PAGE = STATE.onboarded ? 'dashboard' : 'welcome'
+let CURRENT_MISSION_ID = null
+let ONBOARD_STEP = 1
+let ONBOARD_ROLE = null
+let ONBOARD_SCHOOL = ''
+let CELEBRATION_MISSION = null
+
+function setState(updater) {
+  STATE = updater(STATE)
+  saveState(STATE)
+  render()
+}
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+
+function getMissionStatus(mId) {
+  if (STATE.completedMissions.includes(mId)) return 'completed'
+  const m = MISSIONS.find(x => x.id === mId)
+  if (!m) return 'locked'
+  const depsOk = (m.dependsOn || []).every(d => STATE.completedMissions.includes(d))
+  if (!depsOk) return 'locked'
+  if ((STATE.missionStepProgress[mId] || 0) > 0) return 'in-progress'
+  return 'not-started'
+}
+
+function getStatusPill(status, size='sm') {
+  const cfg = {
+    locked:       {label:'Locked',      cls:'bg-gray-100 text-gray-400'},
+    'not-started':{label:'Not Started', cls:'bg-amber-50 text-amber-700 border border-amber-200'},
+    'in-progress':{label:'In Progress', cls:'bg-blue-50 text-blue-700 border border-blue-200'},
+    completed:    {label:'Complete',    cls:'bg-emerald-50 text-emerald-700 border border-emerald-200'},
+  }
+  const {label,cls} = cfg[status] || cfg.locked
+  const sz = size === 'sm' ? 'text-[10px] px-2 py-0.5' : 'text-xs px-3 py-1'
+  return `<span class="inline-flex items-center rounded-full font-head font-bold uppercase tracking-wide ${sz} ${cls}">${label}</span>`
+}
+
+function getPhase(id) { return PHASES.find(p=>p.id===id) || PHASES[0] }
+function getRole(id) { return ROLES.find(r=>r.id===id) || ROLES[1] }
+
+function progressBar(pct, color='#0F3460', h=6) {
+  return `<div class="progress-bar" style="height:${h}px"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>`
+}
+
+function completionRing(done, max, size=72, color='#0F3460') {
+  max = Math.max(max,1)
+  const pct = Math.min(100, (done/max)*100)
+  const r = (size-6)/2, circ = 2*Math.PI*r, off = circ*(1-pct/100)
+  return `<div style="position:relative;width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="6"
+        stroke-dasharray="${circ}" stroke-dashoffset="${off}" stroke-linecap="round" style="transition:stroke-dashoffset 0.8s ease-out"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <span style="font-size:12px;font-weight:700;font-family:Montserrat,sans-serif;color:${color}">${Math.round(pct)}%</span>
+    </div>
+  </div>`
+}
+
+// ═══════════════════════════════════════════════════
+//  PAGE RENDERERS
+// ═══════════════════════════════════════════════════
+
+function renderWelcome() {
+  return `
+  <div style="min-height:100vh;background:#081F3F;display:flex;flex-direction:column">
+    <div style="padding:24px 24px 0;display:flex;align-items:center;gap:10px">
+      <div style="width:28px;height:28px;border-radius:6px;background:#B5162B;display:flex;align-items:center;justify-content:center">
+        <span style="color:#fff;font-size:14px;font-weight:900;font-family:Montserrat,sans-serif">F</span>
+      </div>
+      <span style="color:#F5C518;font-size:11px;font-family:Montserrat,sans-serif;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">Future Ready NYC</span>
+    </div>
+
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:48px 24px">
+      <div style="max-width:480px;width:100%">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;flex-wrap:wrap">
+          ${['A','E','C','E','C'].map(l=>`<div style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:Montserrat,sans-serif;font-weight:800;color:rgba(255,255,255,0.5)">${l}</div>`).join('')}
+          <span style="color:rgba(255,255,255,0.25);font-size:11px;font-family:Montserrat,sans-serif;margin-left:4px">Awareness → Completion</span>
+        </div>
+
+        <h1 style="font-size:clamp(2rem,6vw,3.2rem);font-family:Montserrat,sans-serif;font-weight:900;color:#fff;line-height:1.1;margin-bottom:16px">
+          Stop managing chaos.<br><span style="color:#F5C518">Start running</span><br>a system.
+        </h1>
+
+        <p style="color:rgba(255,255,255,0.55);font-size:15px;line-height:1.65;margin-bottom:28px;max-width:380px">
+          The FRNYC Recruitment Hub gives you exactly what to do next, how long it takes, and how you know it's done.
+        </p>
+
+        <div style="margin-bottom:32px;display:flex;flex-direction:column;gap:10px">
+          ${[
+            'Role-based missions — no fluff, no generic slides',
+            'See your next action in under 5 seconds',
+            'Track your school\'s progress toward enrollment goals',
+          ].map(t=>`<div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="color:#F5C518;font-size:14px;flex-shrink:0;margin-top:1px">✓</span>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px">${t}</p>
+          </div>`).join('')}
+        </div>
+
+        <button class="btn-primary" onclick="navTo('choose-role')">
+          Get Started <span style="font-size:16px">→</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="padding:16px 24px">
+      <p style="color:rgba(255,255,255,0.18);font-size:11px;font-family:Montserrat,sans-serif">Office of Student Pathways × FRNYC</p>
+    </div>
+  </div>`
+}
+
+function renderChooseRole() {
+  const step = ONBOARD_STEP
+  return `
+  <div style="min-height:100vh;background:#F7F9FC">
+    <div style="padding:20px 24px;display:flex;align-items:center;gap:12px">
+      <button onclick="navTo('welcome')" style="background:none;border:none;color:#9CA3AF;cursor:pointer;padding:4px;font-size:16px">←</button>
+      ${[1,2].map((s,i)=>`<div style="height:6px;border-radius:999px;transition:all 0.3s;${s===step?'width:32px;background:#0F3460':i<step-1?'width:16px;background:rgba(15,52,96,0.4)':'width:16px;background:#E5E7EB'}"></div>`).join('')}
+    </div>
+
+    <div style="max-width:640px;margin:0 auto;padding:20px 24px 40px">
+      ${step === 1 ? `
+      <div style="margin-bottom:28px">
+        <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#B5162B;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Step 1 of 2</p>
+        <h2 style="font-size:clamp(1.6rem,4vw,2.2rem);font-family:Montserrat,sans-serif;font-weight:900;color:#111827;margin-bottom:8px">What's your role?</h2>
+        <p style="color:#6B7280;font-size:14px">Your role determines which missions you see and what actions you own.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:28px">
+        ${ROLES.map(r=>`
+        <button onclick="ONBOARD_ROLE='${r.id}';render()" style="text-align:left;padding:18px;border-radius:12px;border:2px solid ${ONBOARD_ROLE===r.id?r.color:'#E5E7EB'};background:${ONBOARD_ROLE===r.id?r.color+'12':'#fff'};cursor:pointer;transition:all 0.15s;position:relative">
+          ${ONBOARD_ROLE===r.id?`<div style="position:absolute;top:10px;right:10px;width:18px;height:18px;background:#0F3460;border-radius:50%;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:9px">✓</span></div>`:''}
+          <div style="width:36px;height:36px;border-radius:8px;background:${r.bg};display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px">${r.icon}</div>
+          <p style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;color:#111827;margin-bottom:4px">${r.title}</p>
+          <p style="font-size:11px;color:#6B7280;line-height:1.5">${r.desc}</p>
+        </button>`).join('')}
+      </div>
+
+      <button class="btn-primary btn-navy" onclick="${ONBOARD_ROLE?'ONBOARD_STEP=2;render()':'alert(\'Please select a role\')'}" style="${!ONBOARD_ROLE?'opacity:0.5':''}">
+        Continue →
+      </button>
+      ` : `
+      <div style="margin-bottom:28px">
+        <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#B5162B;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Step 2 of 2</p>
+        <h2 style="font-size:clamp(1.6rem,4vw,2.2rem);font-family:Montserrat,sans-serif;font-weight:900;color:#111827;margin-bottom:8px">Your school</h2>
+        <p style="color:#6B7280;font-size:14px">This appears in your dashboard and helps your team identify your progress.</p>
+      </div>
+
+      <div class="card" style="padding:20px;margin-bottom:20px">
+        <label style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;display:block;margin-bottom:8px">School name</label>
+        <input id="school-input" type="text" value="${ONBOARD_SCHOOL}" placeholder="e.g. Gateway High School"
+          oninput="ONBOARD_SCHOOL=this.value"
+          style="width:100%;font-size:15px;border:1px solid #DDE3EE;border-radius:8px;padding:12px 14px;outline:none;font-family:Inter,sans-serif;color:#111827"
+          onkeydown="if(event.key==='Enter')completeOnboarding()" />
+        <p style="font-size:11px;color:#9CA3AF;margin-top:6px">You can update this later in School Profile.</p>
+      </div>
+
+      ${ONBOARD_ROLE ? `<div style="background:rgba(15,52,96,0.05);border:1px solid rgba(15,52,96,0.1);border-radius:10px;padding:14px;margin-bottom:20px">
+        <p style="font-size:10px;color:#6B7280;margin-bottom:4px">Your role</p>
+        <p style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;color:#0F3460">${getRole(ONBOARD_ROLE).title}</p>
+      </div>` : ''}
+
+      <button class="btn-primary btn-navy" onclick="completeOnboarding()">
+        Go to my dashboard →
+      </button>
+      `}
+    </div>
+  </div>`
+}
+
+function renderAppShell(content) {
+  const role = getRole(STATE.role)
+  const completed = STATE.completedMissions.length
+  const pages = [
+    {id:'dashboard',    label:'Dashboard',     icon:'⊞'},
+    {id:'missions',     label:'Missions',      icon:'☑'},
+    {id:'resources',    label:'Resources',     icon:'📖'},
+    {id:'progress',     label:'My Progress',   icon:'📈'},
+    {id:'school-profile',label:'School Profile',icon:'🏫'},
+    {id:'team-view',    label:'Team View',     icon:'👥'},
+  ]
+  return `
+  <div style="display:flex;height:100vh;overflow:hidden">
+    <!-- Sidebar -->
+    <aside style="width:240px;background:#081F3F;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden" class="hidden md:flex" id="sidebar">
+      <div style="padding:20px;border-bottom:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="width:22px;height:22px;border-radius:5px;background:#B5162B;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:11px;font-weight:900;font-family:Montserrat,sans-serif">F</span></div>
+          <span style="color:#F5C518;font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">FRNYC</span>
+        </div>
+        <p style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;color:#fff">Recruitment Hub</p>
+      </div>
+
+      <div style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:50%;background:${role.color}30;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${role.icon}</div>
+          <div style="min-width:0">
+            <p style="font-size:9px;color:rgba(255,255,255,0.45);font-family:Montserrat,sans-serif;text-transform:uppercase;letter-spacing:0.1em">Your role</p>
+            <p style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${role.title}</p>
+            ${STATE.schoolName ? `<p style="font-size:10px;color:rgba(255,255,255,0.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${STATE.schoolName}</p>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <nav style="flex:1;padding:10px;overflow-y:auto">
+        ${pages.map(p=>`
+        <div onclick="navTo('${p.id}')" class="nav-link ${CURRENT_PAGE===p.id?'active':''}">
+          <span style="font-size:14px">${p.icon}</span>
+          <span>${p.label}</span>
+        </div>`).join('')}
+      </nav>
+
+      <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,0.1)">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px">
+          <span>${completed} missions done</span>
+          ${STATE.streak > 0 ? `<span>🔥 ${STATE.streak}d streak</span>` : ''}
+        </div>
+        ${progressBar(Math.min(100,(completed/6)*100),'#F5C518',5)}
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden">
+      <!-- Topbar -->
+      <header style="height:52px;background:#fff;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:sticky;top:0;z-index:20">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="display:flex;align-items:center;gap:6px" class="md:hidden">
+            <div style="width:18px;height:18px;border-radius:4px;background:#B5162B;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:9px;font-weight:900">F</span></div>
+            <span style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#0F3460;letter-spacing:0.1em;text-transform:uppercase">FRNYC</span>
+          </div>
+          <h1 style="font-size:14px;font-family:Montserrat,sans-serif;font-weight:700;color:#1F2937;display:none" class="md:block">${pageTitleFor(CURRENT_PAGE)}</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${STATE.focusMode ? `<span style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;background:#0F3460;color:#fff;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:0.1em">Focus Mode</span>` : ''}
+          ${STATE.schoolName ? `<span style="font-size:11px;color:#9CA3AF;font-family:Montserrat,sans-serif">${STATE.schoolName}</span>` : ''}
+        </div>
+      </header>
+
+      <!-- Mobile nav -->
+      <div style="background:#fff;border-bottom:1px solid #E5E7EB;display:flex;overflow-x:auto;padding:0 8px;" class="md:hidden">
+        ${pages.slice(0,5).map(p=>`
+        <button onclick="navTo('${p.id}')" style="flex-shrink:0;padding:10px 12px;font-size:11px;font-family:Montserrat,sans-serif;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid ${CURRENT_PAGE===p.id?'#0F3460':'transparent'};color:${CURRENT_PAGE===p.id?'#0F3460':'#9CA3AF'}">${p.label}</button>`).join('')}
+      </div>
+
+      <main style="flex:1;overflow-y:auto">
+        ${content}
+      </main>
+    </div>
+  </div>`
+}
+
+function pageTitleFor(p) {
+  const m = {'dashboard':'Dashboard','missions':'Missions','resources':'Resources','progress':'My Progress','school-profile':'School Profile','team-view':'Team View'}
+  return m[p] || 'FRNYC Hub'
+}
+
+function renderDashboard() {
+  const role = getRole(STATE.role)
+  const phase = getPhase(STATE.phase)
+  const myMissions = MISSIONS.filter(m => m.owner.includes(STATE.role))
+  const completed = STATE.completedMissions.length
+  const total = myMissions.length
+  const focusMission = myMissions.find(m=>getMissionStatus(m.id)==='in-progress') || myMissions.find(m=>getMissionStatus(m.id)==='not-started')
+  const phaseIdx = PHASES.findIndex(p=>p.id===STATE.phase)
+
+  const risks = []
+  if (!STATE.completedMissions.length) risks.push('No missions started — your school is behind the launch timeline.')
+  if (!STATE.schoolName) risks.push('School name not set — set it in School Profile.')
+
+  if (STATE.focusMode && focusMission) {
+    const fStep = STATE.missionStepProgress[focusMission.id] || 0
+    return renderAppShell(`
+    <div style="min-height:100%;background:#081F3F;display:flex;align-items:center;justify-content:center;padding:32px" class="fade-in">
+      <div style="max-width:400px;width:100%;text-align:center">
+        <p style="color:#F5C518;font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px">Focus Mode</p>
+        <h2 style="font-size:clamp(1.5rem,4vw,2rem);font-family:Montserrat,sans-serif;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.2">${focusMission.title}</h2>
+        <p style="color:rgba(255,255,255,0.45);font-size:13px;margin-bottom:8px">${focusMission.time} · ${focusMission.due}</p>
+        <div style="width:80px;height:4px;background:rgba(255,255,255,0.15);border-radius:999px;margin:0 auto 24px;overflow:hidden">
+          <div style="height:100%;background:#F5C518;border-radius:999px;width:${(fStep/focusMission.steps.length)*100}%"></div>
+        </div>
+        <button class="btn-primary" style="width:100%;justify-content:center;margin-bottom:14px" onclick="navToMission('${focusMission.id}')">
+          ${getMissionStatus(focusMission.id)==='in-progress'?'Continue Mission →':'Start Mission →'}
+        </button>
+        <button onclick="toggleFocusMode()" style="background:none;border:none;color:rgba(255,255,255,0.35);font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">Exit Focus Mode</button>
+      </div>
+    </div>`)
+  }
+
+  return renderAppShell(`
+  <div style="max-width:900px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:20px" class="fade-in">
+
+    <!-- Welcome banner -->
+    <div style="background:#0F3460;border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <p style="color:#F5C518;font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">${role.icon} ${role.title}${STATE.schoolName?' · '+STATE.schoolName:''}</p>
+        <h2 style="font-size:17px;font-family:Montserrat,sans-serif;font-weight:800;color:#fff;margin-bottom:4px">Good to see you.</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,0.55)">You're in the <span style="color:#F5C518;font-weight:700">${phase.label}</span> phase of the FRNYC framework.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        ${completionRing(completed, Math.max(total,1), 68, '#F5C518')}
+        <button onclick="toggleFocusMode()" style="background:rgba(255,255,255,0.1);border:none;border-radius:999px;color:#fff;font-size:11px;font-family:Montserrat,sans-serif;font-weight:700;padding:8px 16px;cursor:pointer;white-space:nowrap">👁 Focus Mode</button>
+      </div>
+    </div>
+
+    <!-- Risks -->
+    ${risks.map(r=>`<div style="display:flex;align-items:flex-start;gap:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px"><span style="color:#D97706;font-size:13px;flex-shrink:0">⚠</span><p style="font-size:13px;color:#92400E">${r}</p></div>`).join('')}
+
+    <!-- Focus mission -->
+    ${focusMission ? `
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">⚡ Your Next Action</p>
+      <div class="card" style="border:2px solid rgba(181,22,43,0.15);padding:18px;display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#B5162B;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">${getMissionStatus(focusMission.id)==='in-progress'?'Continue':'Start next'}</p>
+          <h3 style="font-size:16px;font-family:Montserrat,sans-serif;font-weight:800;color:#111827;margin-bottom:8px;line-height:1.2">${focusMission.title}</h3>
+          <p style="font-size:12px;color:#6B7280;margin-bottom:10px;line-height:1.5">${focusMission.why}</p>
+          <div style="display:flex;gap:14px;font-size:11px;color:#9CA3AF">
+            <span>⏱ ${focusMission.time}</span>
+            <span>📅 ${focusMission.due}</span>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="navToMission('${focusMission.id}')">
+          ${getMissionStatus(focusMission.id)==='in-progress'?'Continue':'Start'} →
+        </button>
+      </div>
+    </div>` : ''}
+
+    <!-- Phase progress -->
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">FRNYC Framework Progress</p>
+      <div class="card" style="padding:16px 20px">
+        <div style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding-bottom:4px">
+          ${PHASES.map((p,i)=>`
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:8px;border:${p.id===STATE.phase?`2px solid ${p.color}`:'1px solid #E5E7EB'};background:${p.id===STATE.phase?p.bg:i<phaseIdx?'#F0FDF4':'#FAFAFA'}">
+              <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:Montserrat,sans-serif;font-weight:800;background:${p.id===STATE.phase?p.color:i<phaseIdx?'#059669':'#E5E7EB'};color:${p.id===STATE.phase||i<phaseIdx?'#fff':'#9CA3AF'}">
+                ${i<phaseIdx?'✓':p.letter}
+              </div>
+              <span style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${p.id===STATE.phase?p.color:'#9CA3AF'}">${p.label}</span>
+            </div>
+            ${i<PHASES.length-1?`<div style="width:14px;height:2px;background:${i<phaseIdx?'#34D399':'#E5E7EB'};flex-shrink:0"></div>`:''}
+          </div>`).join('')}
+        </div>
+        <p style="font-size:11px;color:#9CA3AF;margin-top:10px">${phase.description}</p>
+      </div>
+    </div>
+
+    <!-- My missions grid -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em">My Missions</p>
+        <button onclick="navTo('missions')" style="background:none;border:none;font-size:11px;color:#0F3460;font-family:Montserrat,sans-serif;font-weight:700;cursor:pointer">View all →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+        ${myMissions.slice(0,4).map(m=>missionCard(m,true)).join('')}
+      </div>
+    </div>
+
+    <!-- Recent wins -->
+    ${STATE.completedMissions.length ? `
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Recent Wins</p>
+      <div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        ${STATE.completedMissions.map(id=>{
+          const m=MISSIONS.find(x=>x.id===id)
+          return m?`<div style="display:flex;align-items:center;gap:10px">
+            <div style="width:22px;height:22px;border-radius:50%;background:#D1FAE5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:#059669;font-size:10px">✓</span></div>
+            <div>
+              <p style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:600;color:#111827">${m.title}</p>
+              ${m.badge?`<p style="font-size:11px;color:#059669">🏅 ${m.badge}</p>`:''}
+            </div>
+          </div>`:''
+        }).join('')}
+      </div>
+    </div>` : ''}
+
+  </div>`)
+}
+
+function missionCard(m, compact=false) {
+  const status = getMissionStatus(m.id)
+  const phase = getPhase(m.phase)
+  const stepProg = STATE.missionStepProgress[m.id] || 0
+  const pct = m.steps.length > 0 ? Math.round((stepProg/m.steps.length)*100) : 0
+  const isLocked = status === 'locked'
+  return `
+  <div onclick="${isLocked?'':'navToMission(\''+m.id+'\')'}" style="background:#fff;border-radius:12px;border:1px solid #DDE3EE;padding:${compact?'14px':'18px'};cursor:${isLocked?'not-allowed':'pointer'};opacity:${isLocked?0.5:1};transition:all 0.15s;box-shadow:0 2px 8px rgba(15,52,96,0.06)" onmouseover="${isLocked?'':'this.style.boxShadow=\'0 6px 24px rgba(15,52,96,0.12)\';this.style.transform=\'translateY(-2px)\'"}" onmouseout="this.style.boxShadow='0 2px 8px rgba(15,52,96,0.06)';this.style.transform='none'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+          <span class="pill" style="background:${phase.bg};color:${phase.color}">${phase.letter} · ${phase.label}</span>
+          ${getStatusPill(status)}
+        </div>
+        <h3 style="font-size:${compact?'13px':'14px'};font-family:Montserrat,sans-serif;font-weight:700;color:#111827;line-height:1.3">${isLocked?'🔒 ':''} ${m.title}</h3>
+      </div>
+      ${!isLocked?`<span style="color:#D1D5DB;font-size:14px;flex-shrink:0;margin-top:2px">›</span>`:''}
+    </div>
+    ${!compact?`<p style="font-size:12px;color:#6B7280;line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${m.why}</p>`:''}
+    <div style="display:flex;gap:12px;font-size:11px;color:#9CA3AF;margin-bottom:${status!=='not-started'&&status!=='locked'?'10px':'0'}">
+      <span>⏱ ${m.time}</span><span>📅 ${m.due}</span>
+    </div>
+    ${status!=='not-started'&&status!=='locked'?`
+    <div style="margin-top:6px">
+      ${progressBar(status==='completed'?100:pct, status==='completed'?'#059669':phase.color, 5)}
+      ${status==='in-progress'?`<p style="font-size:9px;color:#9CA3AF;margin-top:3px">Step ${Math.min(stepProg+1,m.steps.length)} of ${m.steps.length}</p>`:''}
+    </div>`:``}
+    ${!compact&&status!=='locked'?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6">
+      <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF">Required output</p>
+      <p style="font-size:11px;color:#6B7280;margin-top:3px">${m.output}</p>
+    </div>`:''}
+  </div>`
+}
+
+function renderMissions() {
+  const myIds = new Set(MISSIONS.filter(m=>m.owner.includes(STATE.role)).map(m=>m.id))
+  const counts = {
+    completed: MISSIONS.filter(m=>STATE.completedMissions.includes(m.id)).length,
+    inProgress: MISSIONS.filter(m=>getMissionStatus(m.id)==='in-progress').length,
+    available: MISSIONS.filter(m=>getMissionStatus(m.id)==='not-started').length,
+  }
+
+  return renderAppShell(`
+  <div style="max-width:860px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:16px" class="fade-in">
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      ${[
+        {l:'Completed',  v:counts.completed,  c:'#059669', bg:'#ECFDF5'},
+        {l:'In Progress',v:counts.inProgress, c:'#1D4ED8', bg:'#EFF6FF'},
+        {l:'Available',  v:counts.available,  c:'#B45309', bg:'#FFFBEB'},
+      ].map(x=>`<div class="card" style="padding:12px;text-align:center">
+        <p style="font-size:22px;font-family:Montserrat,sans-serif;font-weight:900;color:${x.c}">${x.v}</p>
+        <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em">${x.l}</p>
+      </div>`).join('')}
+    </div>
+
+    <!-- All missions -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${MISSIONS.map(m=>{
+        const isMine = myIds.has(m.id)
+        return `<div style="opacity:${isMine?1:0.55}">
+          ${!isMine?`<p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;margin-bottom:4px;margin-left:4px">Not in your role</p>`:''}
+          ${missionCard(m, false)}
+        </div>`
+      }).join('')}
+    </div>
+  </div>`)
+}
+
+function renderMissionDetail() {
+  const m = MISSIONS.find(x=>x.id===CURRENT_MISSION_ID)
+  if (!m) return renderAppShell('<div style="padding:32px;text-align:center"><p style="color:#6B7280">Mission not found.</p><button onclick="navTo(\'missions\')" style="color:#0F3460;font-family:Montserrat;font-weight:700;background:none;border:none;cursor:pointer;margin-top:12px">← Back to missions</button></div>')
+
+  const phase = getPhase(m.phase)
+  const isComplete = STATE.completedMissions.includes(m.id)
+  const stepIdx = isComplete ? m.steps.length : (STATE.missionStepProgress[m.id] || 0)
+  const currentStep = m.steps[Math.min(stepIdx, m.steps.length-1)]
+  const pct = isComplete ? 100 : Math.round((stepIdx/m.steps.length)*100)
+  const sc = STEP_CONFIG[currentStep.type] || STEP_CONFIG['do-now']
+
+  return renderAppShell(`
+  <div style="max-width:680px;margin:0 auto;padding:20px 20px 40px" class="fade-in">
+
+    <button onclick="navTo('missions')" style="background:none;border:none;font-size:13px;color:#9CA3AF;cursor:pointer;padding:0;margin-bottom:20px;display:flex;align-items:center;gap:6px">
+      ← All missions
+    </button>
+
+    <!-- Mission header -->
+    <div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span class="pill" style="background:${phase.bg};color:${phase.color}">${phase.letter} · ${phase.label}</span>
+        ${getStatusPill(getMissionStatus(m.id),'md')}
+      </div>
+      <h1 style="font-size:clamp(1.3rem,3vw,1.7rem);font-family:Montserrat,sans-serif;font-weight:900;color:#111827;margin-bottom:10px;line-height:1.25">${m.title}</h1>
+      <p style="font-size:13px;color:#6B7280;line-height:1.6;margin-bottom:12px">${m.why}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:#9CA3AF;margin-bottom:14px">
+        <span>⏱ ${m.time}</span><span>📅 ${m.due}</span><span>📋 ${m.output}</span>
+      </div>
+      <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:12px 14px">
+        <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Done when…</p>
+        <p style="font-size:12px;color:#065F46">${m.doneWhen}</p>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <p style="font-size:11px;color:#9CA3AF">Step ${Math.min(stepIdx+1,m.steps.length)} of ${m.steps.length}</p>
+        <p style="font-size:11px;font-family:Montserrat,sans-serif;font-weight:700;color:${phase.color}">${pct}%</p>
+      </div>
+      ${progressBar(pct, isComplete?'#059669':phase.color, 7)}
+    </div>
+
+    <!-- Step breadcrumbs -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">
+      ${m.steps.map((s,i)=>{
+        const done = isComplete || i < stepIdx
+        const active = !isComplete && i === stepIdx
+        const sc2 = STEP_CONFIG[s.type] || STEP_CONFIG['do-now']
+        return `<div class="step-btn" style="background:${done?'#34D399':active?sc2.color:'#E5E7EB'};color:${done||active?'#fff':'#9CA3AF'}" title="${sc2.label}">${done?'✓':i+1}</div>`
+      }).join('')}
+    </div>
+
+    <!-- Current step card -->
+    ${!isComplete ? `
+    <div class="mission-step" style="border-color:${sc.color}30;background:${sc.bg};margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="font-size:20px">${sc.icon}</span>
+        <span class="pill" style="background:${sc.color};color:#fff;font-size:9px">${sc.label}</span>
+      </div>
+      <h2 style="font-size:clamp(1rem,2.5vw,1.25rem);font-family:Montserrat,sans-serif;font-weight:800;color:#111827;margin-bottom:12px;line-height:1.25">${currentStep.title}</h2>
+      <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:16px">${currentStep.content}</p>
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;margin-bottom:10px">
+        <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Your action</p>
+        <p style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:600;color:#1F2937">${currentStep.action}</p>
+      </div>
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px">
+        <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Output</p>
+        <p style="font-size:13px;color:#374151">${currentStep.output}</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <button onclick="prevStep()" ${stepIdx===0?'disabled':''} style="display:flex;align-items:center;gap:6px;font-size:13px;color:#9CA3AF;background:none;border:none;cursor:pointer;opacity:${stepIdx===0?0.3:1}">← Previous</button>
+      <button onclick="nextStep()" class="btn-primary" style="background:${stepIdx===m.steps.length-1?'#059669':sc.color}">
+        ${stepIdx===m.steps.length-1?'✓ Mark Complete':'Next Step →'}
+      </button>
+    </div>
+    ` : `
+    <!-- Completed view -->
+    <div style="text-align:center;padding:20px 0 10px;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:10px">🏆</div>
+      <p style="font-family:Montserrat,sans-serif;font-weight:800;color:#059669;font-size:16px">Mission Complete!</p>
+      ${m.badge?`<div style="display:inline-flex;align-items:center;gap:8px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:999px;padding:6px 14px;margin-top:10px">
+        <span style="font-size:13px">🏅</span>
+        <span style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;color:#92400E">${m.badge} earned</span>
+      </div>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${m.steps.map((s,i)=>{
+        const sc2 = STEP_CONFIG[s.type]||STEP_CONFIG['do-now']
+        return `<div class="card" style="padding:12px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:20px;height:20px;border-radius:50%;background:#34D399;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:#fff;font-size:9px">✓</span></div>
+            <div>
+              <span style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${sc2.color}">${sc2.label}</span>
+              <p style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:600;color:#374151">${s.title}</p>
+            </div>
+          </div>
+        </div>`
+      }).join('')}
+    </div>
+    <div style="text-align:center;margin-top:20px">
+      <button onclick="navTo('missions')" style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;color:#0F3460;background:none;border:none;cursor:pointer">← Find your next mission</button>
+    </div>
+    `}
+  </div>`)
+}
+
+function renderResources() {
+  const categories = {
+    'Templates': [
+      {title:'4-Year Roadmap Template',      type:'template',desc:'Fillable template for mapping a student\'s full FRNYC pathway: courses, internships, credentials.',time:'5 min to customize'},
+      {title:'Family One-Pager Template',    type:'template',desc:'One-page school-customizable overview of your FRNYC pathway for families.',                       time:'20 min to customize'},
+      {title:'Family FAQ Template',          type:'template',desc:'Top 10 questions families ask about FRNYC, with suggested answers to customize.',                  time:'15 min to customize'},
+      {title:'Student Interest Survey',      type:'template',desc:'9-question survey to measure interest, identify barriers, and segment students.',                   time:'10 min to customize'},
+      {title:'Retention Plan Template',      type:'template',desc:'One-page template for documenting your school\'s retention system.',                                time:'30 min to complete'},
+    ],
+    'Guides': [
+      {title:'Ambassador Training Agenda',   type:'guide',   desc:'45-minute facilitation guide for your first ambassador training session.',                         time:'10 min to review'},
+      {title:'Ambassador Story Script',      type:'guide',   desc:'4-question framework: What do you do? Best part? Hard at first? Would you recommend it?',           time:'5 min'},
+      {title:'Early Warning Trigger Guide',  type:'guide',   desc:'Defines 3 signals that indicate a student is at risk: attendance, grades, engagement.',            time:'10 min'},
+      {title:'FRNYC Framework Overview',     type:'guide',   desc:'The AECEC framework explained: Awareness, Exposure, Commitment, Experience, Completion.',          time:'10 min'},
+      {title:'SYEP Eligibility Guide',       type:'guide',   desc:'How to connect FRNYC students to SYEP: eligibility, timeline, employer matching.',                 time:'12 min'},
+    ],
+    'Family': [
+      {title:'Family Info Session Agenda',   type:'template',desc:'60-minute session agenda with timing, talking points, and checklist.',                             time:'15 min to review'},
+      {title:'Recruitment Scope Guide',      type:'guide',   desc:'Defines what each role is responsible for. Use for team alignment and accountability.',             time:'8 min'},
+    ]
+  }
+
+  const typeColor = {template:'#0F3460', guide:'#2D6A4F', example:'#D97706'}
+  const typeIcon  = {template:'📄', guide:'📖', example:'💡'}
+
+  return renderAppShell(`
+  <div style="max-width:860px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:20px" class="fade-in">
+    <div>
+      <h2 style="font-size:20px;font-family:Montserrat,sans-serif;font-weight:900;color:#111827;margin-bottom:4px">Resources</h2>
+      <p style="font-size:13px;color:#6B7280">Templates, guides, and examples — organized by topic.</p>
+    </div>
+
+    ${Object.entries(categories).map(([cat, items])=>`
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">${cat}</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+        ${items.map(r=>`
+        <div class="card" style="padding:14px;cursor:pointer" onmouseover="this.style.boxShadow='0 6px 24px rgba(15,52,96,0.12)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(15,52,96,0.08)'">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:34px;height:34px;border-radius:8px;background:${typeColor[r.type]}18;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${typeIcon[r.type]}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">
+                <span class="pill" style="background:${typeColor[r.type]}18;color:${typeColor[r.type]}">${r.type}</span>
+                <span style="font-size:9px;color:#9CA3AF">${r.time}</span>
+              </div>
+              <h4 style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3">${r.title}</h4>
+              <p style="font-size:11px;color:#6B7280;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.desc}</p>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('')}
+  </div>`)
+}
+
+function renderProgress() {
+  const completed = STATE.completedMissions.length
+  const totalM = MISSIONS.length
+  const earnedB = STATE.earnedBadges.length
+  const totalB = BADGES.length
+
+  const phaseProgress = PHASES.map(p=>{
+    const pm = MISSIONS.filter(m=>m.phase===p.id)
+    const done = pm.filter(m=>STATE.completedMissions.includes(m.id)).length
+    return {phase:p, total:pm.length, done}
+  })
+
+  return renderAppShell(`
+  <div style="max-width:860px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:20px" class="fade-in">
+
+    <!-- Overall -->
+    <div style="background:#0F3460;border-radius:12px;padding:20px 24px">
+      <h2 style="font-size:16px;font-family:Montserrat,sans-serif;font-weight:800;color:#fff;margin-bottom:20px">Your Progress</h2>
+      <div style="display:grid;grid-template-columns:repeat(2,auto) 1fr 1fr;gap:16px;align-items:center;flex-wrap:wrap">
+        <div style="text-align:center">
+          ${completionRing(completed, Math.max(totalM,1), 68, '#F5C518')}
+          <p style="color:rgba(255,255,255,0.5);font-size:10px;margin-top:6px;font-family:Montserrat,sans-serif">${completed}/${totalM} Missions</p>
+        </div>
+        <div style="text-align:center">
+          ${completionRing(earnedB, Math.max(totalB,1), 68, '#B5162B')}
+          <p style="color:rgba(255,255,255,0.5);font-size:10px;margin-top:6px;font-family:Montserrat,sans-serif">${earnedB}/${totalB} Badges</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:14px;text-align:center">
+          <p style="font-size:28px;font-family:Montserrat,sans-serif;font-weight:900;color:#F5C518">${STATE.streak}</p>
+          <p style="font-size:10px;color:rgba(255,255,255,0.5);font-family:Montserrat,sans-serif">Day Streak 🔥</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:14px;text-align:center">
+          <p style="font-size:14px;font-family:Montserrat,sans-serif;font-weight:900;color:#F5C518;text-transform:capitalize">${STATE.phase}</p>
+          <p style="font-size:10px;color:rgba(255,255,255,0.5);font-family:Montserrat,sans-serif">Current Phase</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase breakdown -->
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Progress by Phase</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${phaseProgress.map(({phase,total,done})=>{
+          const pct = total>0?Math.round((done/total)*100):0
+          return `<div class="card" style="padding:12px 16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:26px;height:26px;border-radius:50%;background:${phase.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-family:Montserrat,sans-serif;font-weight:800;color:#fff">${phase.letter}</div>
+                <div>
+                  <p style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;color:#1F2937">${phase.label}</p>
+                  <p style="font-size:10px;color:#9CA3AF">${done}/${total} missions</p>
+                </div>
+              </div>
+              <span style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;color:${phase.color}">${pct}%</span>
+            </div>
+            ${progressBar(done, Math.max(total,1), phase.color, 5)}
+          </div>`
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Badges</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
+        ${BADGES.map(b=>{
+          const earned = STATE.earnedBadges.includes(b.id)
+          return `<div class="card" style="padding:12px;text-align:center;opacity:${earned?1:0.45};filter:${earned?'none':'grayscale(1)'}">
+            <div style="width:44px;height:44px;border-radius:50%;background:${earned?b.color+'18':'#F3F4F6'};display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 8px">${b.emoji}</div>
+            <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#374151;line-height:1.3">${b.name}</p>
+            <p style="font-size:9px;color:#9CA3AF;margin-top:2px">${earned?'Earned':'Locked'}</p>
+          </div>`
+        }).join('')}
+      </div>
+    </div>
+
+    ${completed===0?`<div style="text-align:center;padding:40px 20px;background:#fff;border-radius:12px;border:1px solid #E5E7EB">
+      <p style="font-size:32px;margin-bottom:8px">🚀</p>
+      <p style="color:#6B7280;font-size:13px">No missions completed yet.</p>
+      <p style="color:#9CA3AF;font-size:11px;margin-top:4px">Complete your first mission to start earning badges.</p>
+      <button onclick="navTo('missions')" style="margin-top:16px;background:#0F3460;color:#fff;border:none;border-radius:999px;padding:10px 24px;font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;cursor:pointer">View missions →</button>
+    </div>`:''}
+
+  </div>`)
+}
+
+function renderSchoolProfile() {
+  return renderAppShell(`
+  <div style="max-width:640px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:16px" class="fade-in">
+    <div>
+      <h2 style="font-size:20px;font-family:Montserrat,sans-serif;font-weight:900;color:#111827;margin-bottom:4px">School Profile</h2>
+      <p style="font-size:13px;color:#6B7280">Your settings and school information.</p>
+    </div>
+
+    <!-- School name -->
+    <div class="card" style="padding:18px">
+      <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;margin-bottom:10px">School Name</p>
+      <div style="display:flex;gap:8px">
+        <input id="school-name-input" type="text" value="${STATE.schoolName}" placeholder="e.g. Gateway High School"
+          style="flex:1;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;font-size:13px;font-family:Inter,sans-serif;outline:none"
+          onfocus="this.style.borderColor='#0F3460'" onblur="this.style.borderColor='#E5E7EB'" />
+        <button onclick="updateSchoolName()" style="background:#0F3460;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;cursor:pointer">Save</button>
+      </div>
+    </div>
+
+    <!-- Role -->
+    <div class="card" style="padding:18px">
+      <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;margin-bottom:10px">Your Role</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+        ${ROLES.map(r=>`
+        <button onclick="updateRole('${r.id}')" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;border:2px solid ${STATE.role===r.id?r.color:'#E5E7EB'};background:${STATE.role===r.id?r.color+'0D':'#fff'};cursor:pointer;text-align:left">
+          <span style="font-size:18px">${r.icon}</span>
+          <p style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;color:#111827;flex:1">${r.title}</p>
+          ${STATE.role===r.id?`<span style="font-size:11px;color:${r.color}">✓</span>`:''}
+        </button>`).join('')}
+      </div>
+    </div>
+
+    <!-- Phase -->
+    <div class="card" style="padding:18px">
+      <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;margin-bottom:6px">Current Framework Phase</p>
+      <p style="font-size:11px;color:#9CA3AF;margin-bottom:10px">Update to reflect where your school is in the FRNYC cycle.</p>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${PHASES.map(p=>`
+        <button onclick="updatePhase('${p.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:2px solid ${STATE.phase===p.id?p.color:'#E5E7EB'};background:${STATE.phase===p.id?p.bg:'#fff'};cursor:pointer;text-align:left">
+          <div style="width:26px;height:26px;border-radius:50%;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-family:Montserrat,sans-serif;font-weight:800;color:#fff;flex-shrink:0">${p.letter}</div>
+          <div>
+            <p style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:700;color:#111827">${p.label}</p>
+            <p style="font-size:10px;color:#6B7280">${p.description}</p>
+          </div>
+          ${STATE.phase===p.id?`<span style="margin-left:auto;color:${p.color}">✓</span>`:''}
+        </button>`).join('')}
+      </div>
+    </div>
+
+    <!-- Reset -->
+    <div class="card" style="padding:18px">
+      <p style="font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;margin-bottom:6px">Reset Progress</p>
+      <p style="font-size:11px;color:#6B7280;margin-bottom:12px">Clears all mission progress, badges, and settings. Use for testing or handing off to a new user.</p>
+      <button onclick="if(confirm('Reset all progress? This cannot be undone.'))resetAll()" style="border:1px solid rgba(181,22,43,0.3);color:#B5162B;background:none;border-radius:8px;padding:8px 16px;font-size:11px;font-family:Montserrat,sans-serif;font-weight:700;cursor:pointer">Reset all progress</button>
+    </div>
+  </div>`)
+}
+
+function renderTeamView() {
+  const phaseProgress = PHASES.map(p=>{
+    const pm = MISSIONS.filter(m=>m.phase===p.id)
+    const done = pm.filter(m=>STATE.completedMissions.includes(m.id)).length
+    return {phase:p, total:pm.length, done, pct:pm.length>0?Math.round((done/pm.length)*100):0}
+  })
+  const overall = Math.round((STATE.completedMissions.length/MISSIONS.length)*100)
+
+  const mockTeam = [
+    {name:'Valeria Reyes',        role:'counselor',         done:2, initials:'VR'},
+    {name:'James Obi',            role:'pathway-teacher',   done:1, initials:'JO'},
+    {name:'Carmen Diaz',          role:'family-engagement', done:0, initials:'CD'},
+    {name:'Principal T. Washington',role:'principal',       done:1, initials:'TW'},
+  ]
+
+  return renderAppShell(`
+  <div style="max-width:900px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:20px" class="fade-in">
+    <div>
+      <h2 style="font-size:20px;font-family:Montserrat,sans-serif;font-weight:900;color:#111827;margin-bottom:4px">Team View</h2>
+      <p style="font-size:13px;color:#6B7280">${STATE.schoolName?STATE.schoolName+' — ':''}School-wide mission progress.</p>
+    </div>
+
+    <!-- School health -->
+    <div style="background:#0F3460;border-radius:12px;padding:20px 24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div>
+          <p style="color:#F5C518;font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">School Progress</p>
+          <p style="font-size:15px;font-family:Montserrat,sans-serif;font-weight:800;color:#fff">${STATE.completedMissions.length} of ${MISSIONS.length} missions complete</p>
+        </div>
+        <p style="font-size:36px;font-family:Montserrat,sans-serif;font-weight:900;color:#F5C518">${overall}%</p>
+      </div>
+      ${progressBar(overall,'#F5C518',8)}
+    </div>
+
+    <!-- Phase grid -->
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Progress by Phase</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px">
+        ${phaseProgress.map(({phase,total,done,pct})=>`
+        <div style="border-radius:10px;border:1px solid ${phase.color}25;background:${phase.bg};padding:12px;text-align:center">
+          <div style="width:30px;height:30px;border-radius:50%;background:${phase.color};display:flex;align-items:center;justify-content:center;font-size:12px;font-family:Montserrat,sans-serif;font-weight:800;color:#fff;margin:0 auto 6px">${phase.letter}</div>
+          <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:${phase.color}">${phase.label}</p>
+          <p style="font-size:18px;font-family:Montserrat,sans-serif;font-weight:900;color:${phase.color};margin:2px 0">${pct}%</p>
+          <p style="font-size:9px;color:#9CA3AF">${done}/${total}</p>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Mission table -->
+    <div>
+      <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">All Missions</p>
+      <div class="card" style="overflow:hidden">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:#F9FAFB;border-bottom:1px solid #F3F4F6">
+              <th style="text-align:left;padding:10px 14px;font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em">Mission</th>
+              <th style="text-align:left;padding:10px 14px;font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em">Phase</th>
+              <th style="text-align:left;padding:10px 14px;font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em">Status</th>
+              <th style="text-align:left;padding:10px 14px;font-size:9px;font-family:Montserrat,sans-serif;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em">Owners</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${MISSIONS.map((m,i)=>{
+              const phase = getPhase(m.phase)
+              const status = getMissionStatus(m.id)
+              return `<tr style="border-bottom:1px solid #F9FAFB;background:${i%2?'#FAFAFA':'#fff'}">
+                <td style="padding:10px 14px">
+                  <p style="font-size:12px;font-family:Montserrat,sans-serif;font-weight:600;color:#111827">${m.title}</p>
+                  <p style="font-size:10px;color:#9CA3AF">${m.due}</p>
+                </td>
+                <td style="padding:10px 14px">
+                  <span class="pill" style="background:${phase.bg};color:${phase.color}">${phase.label}</span>
+                </td>
+                <td style="padding:10px 14px">${getStatusPill(status)}</td>
+                <td style="padding:10px 14px">
+                  <div style="display:flex;gap:4px">${m.owner.slice(0,3).map(id=>{const r=getRole(id);return`<span title="${r.title}" style="font-size:14px">${r.icon}</span>`}).join('')}</div>
+                </td>
+              </tr>`
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Team roster -->
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <p style="font-size:10px;font-family:Montserrat,sans-serif;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.1em">Team Roster</p>
+        <span style="font-size:9px;background:#FEF3C7;color:#92400E;border-radius:4px;padding:1px 6px;font-family:Montserrat,sans-serif;font-weight:700">Demo data</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${mockTeam.map(member=>{
+          const r = getRole(member.role)
+          const myM = MISSIONS.filter(m=>m.owner.includes(member.role))
+          const pct = myM.length>0?Math.round((member.done/myM.length)*100):0
+          return `<div class="card" style="padding:12px 16px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;border-radius:50%;background:${r.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-family:Montserrat,sans-serif;font-weight:700;color:#fff;flex-shrink:0">${member.initials}</div>
+            <div style="flex:1;min-width:0">
+              <p style="font-size:13px;font-family:Montserrat,sans-serif;font-weight:700;color:#111827">${member.name}</p>
+              <p style="font-size:11px;color:#9CA3AF">${r.title}</p>
+            </div>
+            <div style="width:120px;flex-shrink:0">
+              ${progressBar(pct,r.color,5)}
+              <p style="font-size:9px;color:#9CA3AF;margin-top:3px">${member.done}/${myM.length} missions</p>
+            </div>
+          </div>`
+        }).join('')}
+      </div>
+    </div>
+  </div>`)
+}
+
+// ═══════════════════════════════════════════════════
+//  NAVIGATION & ACTIONS
+// ═══════════════════════════════════════════════════
+
+function navTo(page) {
+  CURRENT_PAGE = page
+  CURRENT_MISSION_ID = null
+  render()
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function navToMission(id) {
+  CURRENT_PAGE = 'mission-detail'
+  CURRENT_MISSION_ID = id
+  render()
+  window.scrollTo({top:0,behavior:'smooth'})
+}
+
+function completeOnboarding() {
+  if (!ONBOARD_ROLE) { alert('Please select a role'); return }
+  setState(s=>({...s, onboarded:true, role:ONBOARD_ROLE, schoolName:ONBOARD_SCHOOL, lastActive:new Date().toISOString().slice(0,10)}))
+  CURRENT_PAGE = 'dashboard'
+  render()
+}
+
+function nextStep() {
+  const m = MISSIONS.find(x=>x.id===CURRENT_MISSION_ID)
+  if (!m) return
+  const stepIdx = STATE.missionStepProgress[CURRENT_MISSION_ID] || 0
+  if (stepIdx < m.steps.length - 1) {
+    setState(s=>({...s, missionStepProgress:{...s.missionStepProgress,[m.id]:stepIdx+1}}))
+  } else {
+    // Complete mission
+    const badgeId = BADGES.find(b=>b.missionId===m.id)?.id
+    setState(s=>{
+      const today = new Date().toISOString().slice(0,10)
+      return {
+        ...s,
+        completedMissions: s.completedMissions.includes(m.id) ? s.completedMissions : [...s.completedMissions, m.id],
+        earnedBadges: badgeId && !s.earnedBadges.includes(badgeId) ? [...s.earnedBadges, badgeId] : s.earnedBadges,
+        streak: s.streak + 1,
+        lastActive: today,
+      }
+    })
+    CELEBRATION_MISSION = m
+    render()
+  }
+}
+
+function prevStep() {
+  if (!CURRENT_MISSION_ID) return
+  const stepIdx = STATE.missionStepProgress[CURRENT_MISSION_ID] || 0
+  if (stepIdx > 0) {
+    setState(s=>({...s, missionStepProgress:{...s.missionStepProgress,[CURRENT_MISSION_ID]:stepIdx-1}}))
+  }
+}
+
+function toggleFocusMode() {
+  setState(s=>({...s, focusMode:!s.focusMode}))
+}
+
+function updateSchoolName() {
+  const val = document.getElementById('school-name-input')?.value || ''
+  setState(s=>({...s, schoolName:val}))
+}
+
+function updateRole(id) { setState(s=>({...s, role:id})); render() }
+function updatePhase(id) { setState(s=>({...s, phase:id})); render() }
+function resetAll() { localStorage.removeItem(STORAGE_KEY); STATE=loadState(); CURRENT_PAGE='welcome'; ONBOARD_STEP=1; ONBOARD_ROLE=null; render() }
+
+// ═══════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════
+
+function render() {
+  const app = document.getElementById('app')
+
+  // Show celebration overlay
+  if (CELEBRATION_MISSION) {
+    const m = CELEBRATION_MISSION
+    CELEBRATION_MISSION = null
+    app.innerHTML = `
+    <div class="celebration">
+      <div style="text-align:center;max-width:360px;padding:32px">
+        <div style="font-size:56px;margin-bottom:16px;animation:pop 0.4s ease-out">🏆</div>
+        <h2 style="font-size:28px;font-family:Montserrat,sans-serif;font-weight:900;color:#fff;margin-bottom:8px">Mission Complete!</h2>
+        <p style="color:rgba(255,255,255,0.55);font-size:13px;margin-bottom:8px">${m.title}</p>
+        ${m.badge?`<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.3);border-radius:999px;padding:6px 16px;margin:10px 0 24px">
+          <span style="color:#F5C518;font-size:14px">🏅</span>
+          <span style="color:#F5C518;font-family:Montserrat,sans-serif;font-weight:700;font-size:12px">${m.badge} badge earned</span>
+        </div>`:'<div style="height:24px"></div>'}
+        <br>
+        <button class="btn-primary" onclick="navTo('dashboard')" style="width:100%;justify-content:center">Back to Dashboard</button>
+      </div>
+    </div>`
+    return
+  }
+
+  let html = ''
+  if (!STATE.onboarded) {
+    if (CURRENT_PAGE === 'choose-role') html = renderChooseRole()
+    else html = renderWelcome()
+  } else {
+    if (CURRENT_PAGE === 'dashboard')       html = renderDashboard()
+    else if (CURRENT_PAGE === 'missions')   html = renderMissions()
+    else if (CURRENT_PAGE === 'mission-detail') html = renderMissionDetail()
+    else if (CURRENT_PAGE === 'resources')  html = renderResources()
+    else if (CURRENT_PAGE === 'progress')   html = renderProgress()
+    else if (CURRENT_PAGE === 'school-profile') html = renderSchoolProfile()
+    else if (CURRENT_PAGE === 'team-view')  html = renderTeamView()
+    else html = renderDashboard()
+  }
+  app.innerHTML = html
+}
+
+// Initial render
+render()
+</script>
+</body>
+</html>
