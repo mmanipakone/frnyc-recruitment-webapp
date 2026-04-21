@@ -78,7 +78,7 @@ export function TeamView({ progress }: Props) {
             <p className="text-white/40 text-xs font-head">overall</p>
           </div>
         </div>
-        <ProgressBar value={overallPct} color="#F5C518" trackColor="rgba(255,255,255,0.15)" height={8} />
+        <ProgressBar value={overallPct} color="#F5C518" height={8} />
       </div>
 
       {/* Phase overview */}
