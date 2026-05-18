@@ -8,6 +8,8 @@ import {
   Users,
   Zap,
   X,
+  UserCheck,
+  Heart,
 } from 'lucide-react'
 import type { UserProgress } from '../../types'
 import { getRoleById } from '../../data/roles'
@@ -25,6 +27,11 @@ const navItems = [
   { to: '/progress', label: 'My Progress', icon: BarChart2 },
   { to: '/school-profile', label: 'School Profile', icon: School },
   { to: '/team-view', label: 'Team View', icon: Users },
+]
+
+const toolkitItems = [
+  { to: '/toolkits/ambassador', label: 'Ambassador Toolkit', icon: UserCheck },
+  { to: '/toolkits/cohort', label: 'Cohort Experience', icon: Heart },
 ]
 
 export function Sidebar({ progress, mobile, onClose }: Props) {
@@ -91,6 +98,30 @@ export function Sidebar({ progress, mobile, onClose }: Props) {
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-head font-600 transition-all ${
                 isActive
                   ? 'bg-white/15 text-white'
+                  : 'text-white/60 hover:bg-white/8 hover:text-white'
+              }`
+            }
+          >
+            <Icon size={16} />
+            {label}
+          </NavLink>
+        ))}
+
+        {/* Toolkits section */}
+        <div className="pt-3 pb-1">
+          <p className="px-3 text-[9px] font-head font-700 uppercase tracking-widest text-gold/70 mb-1">
+            Toolkits
+          </p>
+        </div>
+        {toolkitItems.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-head font-600 transition-all ${
+                isActive
+                  ? 'bg-gold/20 text-gold'
                   : 'text-white/60 hover:bg-white/8 hover:text-white'
               }`
             }

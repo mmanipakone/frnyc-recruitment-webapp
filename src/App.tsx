@@ -10,6 +10,8 @@ import { Resources } from './pages/Resources'
 import { Progress } from './pages/Progress'
 import { SchoolProfile } from './pages/SchoolProfile'
 import { TeamView } from './pages/TeamView'
+import { AmbassadorToolkit } from './pages/AmbassadorToolkit'
+import { CohortToolkit } from './pages/CohortToolkit'
 import { useProgress } from './hooks/useProgress'
 import type { RoleId, Phase } from './types'
 
@@ -80,6 +82,8 @@ function AppRoutes() {
           }
         />
         <Route path="team-view" element={<TeamView progress={progress} />} />
+        <Route path="toolkits/ambassador" element={<AmbassadorToolkit />} />
+        <Route path="toolkits/cohort" element={<CohortToolkit />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
       <Route path="/welcome" element={<Navigate to="/dashboard" replace />} />
